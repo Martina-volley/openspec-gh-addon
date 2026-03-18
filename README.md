@@ -53,14 +53,14 @@ git --version && gh auth status && openspec --version
 
 ```bash
 # 1. Clone 這個 repo
-git clone https://github.com/<your-username>/opsx-gh.git
+git clone https://github.com/Martina-volley/openspec-gh-addon.git
 
 # 2a. 複製 skills 到 Claude Code 個人目錄（全域可用）
-cp -r opsx-gh/skills/openspec-gh-* ~/.claude/skills/
+cp -r openspec-gh-addon/.agent/skills/openspec-gh-* ~/.claude/skills/
 
 # 2b. 或複製 workflows 到專案 .agent/ 目錄（專案層級）
-cp opsx-gh/workflows/opsx-gh-*.md your-project/.agent/workflows/
-cp -r opsx-gh/skills/openspec-gh-* your-project/.agent/skills/
+cp openspec-gh-addon/.agent/workflows/opsx-gh-*.md your-project/.agent/workflows/
+cp -r openspec-gh-addon/.agent/skills/openspec-gh-* your-project/.agent/skills/
 ```
 
 ### 方式 B：直接複製需要的 Skill
@@ -69,7 +69,7 @@ cp -r opsx-gh/skills/openspec-gh-* your-project/.agent/skills/
 # 只複製特定 skill（例如只要 opsx-gh-new）
 mkdir -p ~/.claude/skills/openspec-gh-new
 curl -o ~/.claude/skills/openspec-gh-new/SKILL.md \
-  https://raw.githubusercontent.com/<your-username>/opsx-gh/main/skills/openspec-gh-new/SKILL.md
+  https://raw.githubusercontent.com/Martina-volley/openspec-gh-addon/main/.agent/skills/openspec-gh-new/SKILL.md
 ```
 
 ---
