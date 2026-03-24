@@ -1,95 +1,123 @@
-# opsx-gh — OpenSpec × GitHub Skill Suite
+# opsx-gh — OpenSpec × GitHub / GitLab Skill Suite
 
-> AI-driven GitHub workflow skills for OpenSpec change management
-> 結合 OpenSpec 與 GitHub 的 AI 工作流程 Skill 套件
+> AI-driven Git workflow skills for OpenSpec change management
+> 結合 OpenSpec 與 GitHub / GitLab 的 AI 工作流程 Skill 套件
 
-**Version**: v1.2 | **License**: MIT | **Requires**: Claude Code + GitHub CLI + OpenSpec CLI
+**Version**: v1.3 | **License**: MIT
 
 ---
 
 ## 這是什麼 / What is this?
 
-`opsx-gh` 是一套 [Claude Code](https://claude.ai/claude-code) Skills，將 OpenSpec change management 與 GitHub 的完整開發流程串起來：
+`opsx-gh` 是一套 AI Coding IDE 的 Skills，將 OpenSpec change management 與 GitHub / GitLab 的完整開發流程串起來。
 
+**完整流程：**
 ```
-/opsx-gh-new  →  建 Artifacts  →  /opsx-gh-apply  →  /opsx-gh-pr  →  /opsx-gh-merge
+/opsx-gh-new  →  建 Artifacts (/opsx-ff)  →  /opsx-gh-apply
+  →  /opsx-gh-verify  →  /opsx-gh-pr  →  /opsx-gh-merge  →  /opsx-archive
 ```
 
-4 個 Skill 涵蓋：建立分支、實作 commit、建立雙語 PR、驗證並合併，全程有結構。
+---
+
+## 名詞說明 / Glossary（避免誤解）
+
+| 名詞 | 實際意義 | 常見誤解 |
+|------|---------|---------|
+| `archive` | 把 OpenSpec 本地的 `changes/<name>/` 資料夾**移動**到 `changes/archive/`，純本地整理 | ❌ 不是 git 操作，不是 push，不是刪除分支 |
+| `merge` | 將 GitHub PR / GitLab MR 合併到目標分支 | ❌ 不包含 archive，兩個是獨立步驟 |
+| `verify` | 用 openspec 驗收實作內容是否符合 spec | ❌ 不是 code review，是 AI 自動比對 spec |
+| `apply` | 逐一實作 tasks.md 裡的任務，自動 commit | ❌ 不會自動 push（完成後才 push） |
+| `explore/` 分支 | 本地快速驗證用，**不能直接 merge** | ❌ 不能跳過升格流程直接 merge |
 
 ---
 
 ## 前置需求 / Prerequisites
 
-| 工具 | 安裝方式 | 確認指令 |
-|------|---------|---------|
-| **Claude Code** | [claude.ai/claude-code](https://claude.ai/claude-code) | `claude --version` |
+| 工具 | 說明 | 確認指令 |
+|------|------|---------|
+| **AI Coding IDE** | 見下方安裝說明 | — |
 | **Git** | [git-scm.com](https://git-scm.com) | `git --version` |
-| **GitHub CLI** | 見下方 | `gh --version` |
+| **GitHub CLI** 或 **GitLab CLI** | `gh` / `glab` | `gh --version` / `glab --version` |
 | **OpenSpec CLI** | 依內部文件安裝 | `openspec --version` |
-
-**安裝 GitHub CLI：**
-```bash
-# Windows
-winget install GitHub.cli
-
-# macOS
-brew install gh
-
-# 安裝後登入
-gh auth login
-```
-
-**驗證所有工具就緒：**
-```bash
-git --version && gh auth status && openspec --version
-```
 
 ---
 
-## 安裝 / Installation
+## 安裝 Skills / Installation
 
-### 方式 A：Clone 到個人 skills 目錄（推薦）
+### Step 1 — 下載 Skill 檔案
 
 ```bash
-# 1. Clone 這個 repo
 git clone https://github.com/Martina-volley/openspec-gh-addon.git
+```
 
-# 2a. 複製 skills 到 Claude Code 個人目錄（全域可用）
+### Step 2 — 依你的 IDE 放到對應位置
+
+#### Claude Code（CLI）
+```bash
+# 全域（任何專案都能用）
 cp -r openspec-gh-addon/.agent/skills/openspec-gh-* ~/.claude/skills/
 
-# 2b. 或複製 workflows 到專案 .agent/ 目錄（專案層級）
-cp openspec-gh-addon/.agent/workflows/opsx-gh-*.md your-project/.agent/workflows/
+# 或專案層級
 cp -r openspec-gh-addon/.agent/skills/openspec-gh-* your-project/.agent/skills/
 ```
 
-### 方式 B：直接複製需要的 Skill
-
+#### Antigravity IDE
 ```bash
-# 只複製特定 skill（例如只要 opsx-gh-new）
-mkdir -p ~/.claude/skills/openspec-gh-new
-curl -o ~/.claude/skills/openspec-gh-new/SKILL.md \
-  https://raw.githubusercontent.com/Martina-volley/openspec-gh-addon/main/.agent/skills/openspec-gh-new/SKILL.md
+# 專案層級 skills
+cp -r openspec-gh-addon/.agent/skills/openspec-gh-* your-project/.agent/skills/
+
+# 或放到 workflows
+cp openspec-gh-addon/.agent/workflows/opsx-gh-*.md your-project/.agent/workflows/
+```
+
+#### Cursor
+```bash
+# 放到專案的 .cursor/skills/ 目錄
+cp -r openspec-gh-addon/.agent/skills/openspec-gh-* your-project/.cursor/skills/
+
+# 或 .cursor/commands/
+cp -r openspec-gh-addon/.agent/skills/openspec-gh-* your-project/.cursor/commands/
+```
+
+#### 驗證安裝成功
+在 IDE 的 AI 對話框輸入：
+```
+What are my available skills?
+```
+或直接呼叫：
+```
+/opsx-gh-new
 ```
 
 ---
 
 ## 快速開始 / Quick Start
 
-### 開一個新功能（3 步驟）
+### 開一個新功能
 
 ```
-1. /opsx-gh-new add-user-auth
-   → 選 feat/，確認 base: main
-   → 顯示需要的 Artifacts 清單
+1. /opsx-gh-new add-user-auth --feat
+   → 建 OpenSpec change + feat/add-user-auth 分支
 
-2. /opsx-ff add-user-auth     （快速建立 artifacts）
+2. /opsx-ff add-user-auth
+   → 快速建立 proposal / design / tasks artifacts
 
-3. /opsx-gh-apply              （實作 tasks，自動 commit）
+3. /opsx-gh-apply
+   → 逐一實作 tasks，每個 task 自動 commit
 
-4. /opsx-gh-pr                 （建立雙語 PR）
+4. /opsx-gh-verify
+   → AI 驗收：確認實作符合 spec，才開 PR
 
-5. /opsx-gh-merge              （review 通過後合併）
+5. /opsx-gh-pr
+   → 建立雙語 PR（中文主體 + 英文摘要）
+
+6. /opsx-gh-merge
+   → 選目標分支（main / release/x.x.x / 自訂）
+   → merge 完詢問是否建立 git tag（例如 v1.2.0）
+
+7. /opsx-archive add-user-auth
+   → 將本地 OpenSpec change 資料夾移到 archive/
+   → 這步與 git 無關，純本地整理
 ```
 
 ### 緊急修正（Hotfix）
@@ -101,37 +129,46 @@ curl -o ~/.claude/skills/openspec-gh-new/SKILL.md \
 2. /opsx-gh-apply
    → commit: fix(scope)!: patch critical bug
 
-3. /opsx-gh-pr
+3. /opsx-gh-verify
+
+4. /opsx-gh-pr
    → PR 含 [HOTFIX] 標題 + Incident Summary
 
-4. /opsx-gh-merge
-   → merge commit + 詢問是否建立 git tag
+5. /opsx-gh-merge
+   → merge commit + 詢問 git tag（例如 v1.2.1）
+
+6. /opsx-archive critical-bug
 ```
 
 ---
 
 ## Skills 總覽
 
-| Skill | 用途 | 版本 |
-|-------|------|------|
-| [`/opsx-gh-new`](skills/openspec-gh-new/SKILL.md) | 建立 OpenSpec change + Git 分支，含 Preflight 檢查 | v1.2 |
-| [`/opsx-gh-apply`](skills/openspec-gh-apply/SKILL.md) | 實作 tasks，自動 commit，管理 explore/ 出口 | v1.2 |
-| [`/opsx-gh-pr`](skills/openspec-gh-pr/SKILL.md) | 建立雙語 PR，含差異比較與 Draft PR 保護 | v1.2 |
-| [`/opsx-gh-merge`](skills/openspec-gh-merge/SKILL.md) | 驗證並合併 PR，清理分支，阻止 explore/ 直接 merge | v1.1 |
+| Skill | 用途 |
+|-------|------|
+| `/opsx-gh-new` | 建立 OpenSpec change + Git 分支，含 Preflight 檢查 |
+| `/opsx-gh-apply` | 實作 tasks，自動 commit，管理 explore/ 出口 |
+| `/opsx-gh-verify` | 驗收實作是否符合 spec（開 PR 前） |
+| `/opsx-gh-pr` | 建立雙語 PR，含差異比較與 Draft PR 保護 |
+| `/opsx-gh-merge` | 合併 PR，可選目標分支，merge 後詢問 tag |
+| `/opsx-gl-new` | 同上，GitLab 版 |
+| `/opsx-gl-apply` | 同上，GitLab 版 |
+| `/opsx-gl-mr` | 建立 GitLab Merge Request（含 WIP 保護） |
+| `/opsx-gl-merge` | 合併 MR，可選目標分支，merge 後詢問 tag，GitLab 版 |
 
 ---
 
 ## 分支類型速查
 
-| 前綴 | 使用情境 | Merge 策略 | PR 類型 |
-|------|---------|-----------|---------|
+| 前綴 | 使用情境 | Merge 策略 | PR/MR 類型 |
+|------|---------|-----------|-----------|
 | `feat/` | 新功能 | Squash | Regular |
 | `fix/` | 修 bug | Squash | Regular |
-| `hotfix/` | 緊急修正 | Merge commit | Regular `[HOTFIX]` |
+| `hotfix/` | 緊急修正 | Merge commit | `[HOTFIX]` |
 | `refactor/` | 重構 | Squash | Regular |
-| `explore/` | 快速驗證 | Squash（需升格） | **Draft 只能** |
+| `explore/` | 快速驗證 | 需升格後才能 merge | Draft / WIP |
 
-> ⚠️ `explore/` 分支**不得直接 merge**，需先走升格流程或轉為正式分支。
+> ⚠️ `explore/` 分支**不得直接 merge**，需先走升格流程（`/opsx-gh-apply` 選項 B 或 D）。
 
 ---
 
@@ -144,30 +181,19 @@ curl -o ~/.claude/skills/openspec-gh-new/SKILL.md \
 
 ## 常見錯誤排查
 
-**`gh: command not found`**
-→ GitHub CLI 未安裝，執行 `winget install GitHub.cli` 或 `brew install gh`
+**Skill 在 IDE 裡找不到**
+→ Claude Code CLI：確認放在 `~/.claude/skills/<name>/SKILL.md`
+→ Antigravity IDE：確認放在專案 `.agent/skills/<name>/SKILL.md`
+→ Cursor：確認放在專案 `.cursor/skills/<name>/SKILL.md`
 
-**`gh auth status` 顯示未登入**
-→ 執行 `gh auth login`，選 GitHub.com，使用瀏覽器認證
+**`gh: command not found`**
+→ 安裝 GitHub CLI：`winget install GitHub.cli`（Windows）或 `brew install gh`（macOS）
 
 **`openspec: command not found`**
-→ OpenSpec CLI 未安裝，請參考內部安裝文件
+→ 請參考內部 OpenSpec 安裝文件
 
 **`git push` 失敗（remote 不存在）**
 → 執行 `git remote add origin https://github.com/<org>/<repo>.git`
-
-**Skill 在 Claude Code 裡找不到（`/opsx-gh-new` 沒反應）**
-→ 確認 SKILL.md 放在 `~/.claude/skills/openspec-gh-new/SKILL.md`
-→ 或確認專案 `.agent/skills/openspec-gh-new/SKILL.md` 存在
-
----
-
-## 已知限制 / Roadmap
-
-- [ ] `/opsx-gh-status` — 查看當前 PR 狀態而不執行 merge
-- [ ] `--reviewer` flag — 建 PR 時指定 reviewer
-- [ ] Conflict 解決步驟指引
-- [ ] GitLab（`glab`）版本支援
 
 ---
 

@@ -1,15 +1,15 @@
 ---
-name: openspec-gh-apply
-description: Implement tasks from an OpenSpec change with GitHub integration. Commits progress, pushes on completion or pause, and optionally enforces TDD. Includes explore/ branch lifecycle management.
+name: openspec-gl-apply
+description: Implement tasks from an OpenSpec change with GitLab integration. Commits progress, pushes on completion or pause, and optionally enforces TDD. Includes explore/ branch lifecycle management.
 license: MIT
-compatibility: Requires openspec CLI, git CLI, and optionally gh CLI.
+compatibility: Requires openspec CLI, git CLI, and glab CLI (GitLab CLI).
 metadata:
   author: custom
-  version: "1.2"
-  basedOn: openspec-apply-change
+  version: "1.0"
+  basedOn: openspec-gh-apply
 ---
 
-Implement tasks from an OpenSpec change with automatic Git commits and GitHub push.
+Implement tasks from an OpenSpec change with automatic Git commits and GitLab push.
 This is a **non-destructive extension** of the standard `/opsx-apply` workflow.
 
 **Input**: Optionally specify a change name. If omitted, infer from conversation context.
@@ -122,8 +122,8 @@ For each pending task:
 git push
 ```
 Then show completion summary and suggest next steps:
-1. `/opsx-gh-verify` — 先驗收實作內容
-2. `/opsx-gh-pr` — 驗收通過後再建立 Pull Request
+1. `/opsx-gl-verify` — 先驗收實作內容
+2. `/opsx-gl-mr` — 驗收通過後再建立 Merge Request
 
 ---
 
@@ -139,7 +139,7 @@ Display a summary of what was explored and ask the user to choose an exit path u
 |------|------|------|
 | A. 關閉 / 歸檔 | 驗證結果不採用，清理掉 | 歸檔 change，刪除本地分支 |
 | B. 轉為正式分支 | 驗證通過，整理後走正式流程 | 建立 `feat/<name>` 或 `fix/<name>` |
-| C. 保留為 Draft PR | 分享討論用，但不 merge | push + 建 Draft PR |
+| C. 保留為 WIP MR | 分享討論用，但不 merge | push + 建 WIP Merge Request |
 | D. 升格為正式功能 | 確認可交付，直接升格 | 走升格流程（見下） |
 
 **執行各選項：**
@@ -161,14 +161,14 @@ Then run `/opsx-archive <name>`.
    git checkout -b feat/<name>   # or fix/<name>
    ```
 4. Archive the explore/ change, create a new change for the formal branch.
-5. Prompt user to continue with `/opsx-gh-apply` on the new branch.
+5. Prompt user to continue with `/opsx-gl-apply` on the new branch.
 
-**選項 C（保留為 Draft PR）：**
+**選項 C（保留為 WIP MR）：**
 ```bash
 git push -u origin explore/<name>
 ```
-Then suggest `/opsx-gh-pr` (which will create a Draft PR).
-**Remind**: This Draft PR cannot be merged directly. It is for review and discussion only.
+Then suggest `/opsx-gl-mr` (which will create a WIP Merge Request).
+**Remind**: This WIP MR cannot be merged directly. It is for review and discussion only.
 
 **選項 D（升格為正式功能）：**
 1. Ask for confirmation:
@@ -182,7 +182,7 @@ Then suggest `/opsx-gh-pr` (which will create a Draft PR).
    ```
 4. Cherry-pick or re-commit work from the explore/ branch.
 5. Archive the original explore/ change.
-6. Push new branch and proceed to `/opsx-gh-pr`.
+6. Push new branch and proceed to `/opsx-gl-mr`.
 
 ---
 
@@ -190,11 +190,11 @@ Then suggest `/opsx-gh-pr` (which will create a Draft PR).
 
 ```
 ## Implementing: <change-name> (schema: <schema-name>)
-🏗️ Feature Mode | Branch: feat/<change-name>
-📝 Commit scope: <scope> | Co-author: <name or none>
+Feature Mode | Branch: feat/<change-name>
+Commit scope: <scope> | Co-author: <name or none>
 
 Working on task 3/7: <task description>
-✓ Task complete → committed: feat(<scope>): <desc>
+[OK] Task complete -> committed: feat(<scope>): <desc>
 ```
 
 ## Output On Completion (non-explore)
@@ -205,15 +205,15 @@ Working on task 3/7: <task description>
 **Change:** <change-name>
 **Branch:** feat/<change-name>
 **Mode:** Feature (TDD)
-**Progress:** 7/7 tasks complete ✓
+**Progress:** 7/7 tasks complete
 
 ### Git Summary
-- 7 commits (local) → pushing now...
-- ✓ Pushed to origin/feat/<change-name>
+- 7 commits (local) -> pushing now...
+- [OK] Pushed to origin/feat/<change-name>
 
-All tasks complete! 🎉
-→ Run `/opsx-gh-verify` to verify implementation before opening PR
-→ Then run `/opsx-gh-pr` to create a GitHub Pull Request
+All tasks complete!
+-> Run `/opsx-gl-verify` to verify implementation before opening MR
+-> Then run `/opsx-gl-mr` to create a GitLab Merge Request
 ```
 
 ## Output On Completion (explore)
@@ -223,9 +223,9 @@ All tasks complete! 🎉
 
 **Change:** <change-name>
 **Branch:** explore/<change-name>
-**Progress:** N/N tasks complete ✓
+**Progress:** N/N tasks complete
 
-📋 Exploration summary: [brief notes from note.md]
+Exploration summary: [brief notes from note.md]
 
 Choose your next step: (showing exit options)
 ```
@@ -240,6 +240,6 @@ Choose your next step: (showing exit options)
 - TDD is **not required** in explore/ or hotfix/ branches
 - Commit after each task with the correct type prefix
 - **Push only on completion or pause — never push mid-loop**
-- **explore/ branches MUST go through exit choice — never auto-push or auto-PR**
-- explore/ Draft PR can be created (option C) but cannot be merged — `opsx-gh-merge` will block it
+- **explore/ branches MUST go through exit choice — never auto-push or auto-MR**
+- explore/ WIP MR can be created (option C) but cannot be merged — `opsx-gl-merge` will block it
 - Keep code changes minimal and scoped to each task

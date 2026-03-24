@@ -1,36 +1,37 @@
 ---
-name: openspec-gh-merge
-description: Merge an approved GitHub Pull Request from an OpenSpec change. Validates approval, blocks explore/ direct merge, selects merge strategy by branch type, cleans up, and prompts to archive.
+name: openspec-gl-merge
+description: Merge an approved GitLab Merge Request from an OpenSpec change. Validates approval, blocks explore/ direct merge, selects merge strategy by branch type, cleans up, and prompts to archive.
 license: MIT
-compatibility: Requires git CLI and gh CLI (GitHub CLI).
+compatibility: Requires git CLI and glab CLI (GitLab CLI).
 metadata:
   author: custom
-  version: "1.1"
+  version: "1.0"
+  basedOn: openspec-gh-merge
 ---
 
-Merge an approved Pull Request and clean up the local branch.
-This is the final step in the GitHub integration workflow after a PR has been reviewed.
+Merge an approved Merge Request and clean up the local branch.
+This is the final step in the GitLab integration workflow after an MR has been reviewed.
 
 **Prerequisites**:
-- `gh` CLI must be installed and authenticated (`gh auth login`)
-- A PR must already exist for the current branch (created via `/opsx-gh-pr`)
+- `glab` CLI must be installed and authenticated (`glab auth login`)
+- An MR must already exist for the current branch (created via `/opsx-gl-mr`)
 
-**Input**: Optionally specify a change name or PR number. If omitted, infer from the current branch name.
+**Input**: Optionally specify a change name or MR IID. If omitted, infer from the current branch name.
 
 ---
 
 ## Steps
 
-### Step 1: Identify the PR
+### Step 1: Identify the MR
 
-If a PR number is provided, use it. Otherwise:
+If an MR IID is provided, use it. Otherwise:
 ```bash
-gh pr view --json number,title,state,headRefName,baseRefName,isDraft,reviews,statusCheckRollup,mergeable
+glab mr view --output json
 ```
 - Extract branch name and parse change name
-- If no PR exists → error, suggest running `/opsx-gh-pr` first
+- If no MR exists → error, suggest running `/opsx-gl-mr` first
 
-Announce: "Merging PR for change: <name>"
+Announce: "Merging MR for change: <name>"
 
 ---
 
@@ -40,12 +41,12 @@ Announce: "Merging PR for change: <name>"
 
 Display:
 ```
-🚫 explore/ 分支不允許直接 merge 到 main。
+[BLOCKED] explore/ 分支不允許直接 merge 到 main。
 
 explore/ 分支用於快速驗證，必須先走升格流程再合併。
-請回到 /opsx-gh-apply 選擇以下其中一個出口：
+請回到 /opsx-gl-apply 選擇以下其中一個出口：
   B. 轉為正式分支（建 feat/ 或 fix/ 後走完整流程）
-  D. 升格為正式功能（cherry-pick 後重新走 PR 流程）
+  D. 升格為正式功能（cherry-pick 後重新走 MR 流程）
 ```
 
 **Stop here. Do NOT proceed with merge.**
@@ -97,18 +98,18 @@ Store confirmed target as `<target-branch>` for use in Steps 5–6.
 Check conditions based on branch type:
 
 **Conflict check (all branches):**
-- If `mergeable: CONFLICTING` → stop immediately:
-  > "❌ 有 merge 衝突，無法繼續。請先解決衝突後再執行 /opsx-gh-merge。"
+- If MR has conflicts → stop immediately:
+  > "[ERROR] 有 merge 衝突，無法繼續。請先解決衝突後再執行 /opsx-gl-merge。"
   - Show list of conflicting files if available
 
 **Approval requirement:**
 
 | Branch | Required |
 |--------|----------|
-| `feat/` | ≥ 1 approved review |
-| `fix/` | ≥ 1 approved review |
-| `refactor/` | ≥ 1 approved review |
-| `hotfix/` | CI pass **OR** ≥ 1 approval (either sufficient) |
+| `feat/` | >= 1 approved review |
+| `fix/` | >= 1 approved review |
+| `refactor/` | >= 1 approved review |
+| `hotfix/` | CI pass **OR** >= 1 approval (either sufficient) |
 
 **CI check (if CI is configured):**
 - Failing CI → warn and ask if user wants to proceed anyway
@@ -117,7 +118,7 @@ Check conditions based on branch type:
 **If validation fails for `feat/fix/refactor`:**
 - Show clear summary of what's missing
 - Do NOT proceed without user confirmation
-- Example: "⚠️ 此 PR 尚未通過 code review（0 approvals）。建議請 team member review 後再 merge。"
+- Example: "⚠️ 此 MR 尚未通過 code review（0 approvals）。建議請 team member review 後再 merge。"
 
 **For `hotfix/` with neither CI pass nor approval:**
 - Show warning
@@ -139,7 +140,7 @@ Check conditions based on branch type:
 Display the strategy before executing:
 ```
 Merge strategy: Squash merge
-feat/add-user-auth → <target-branch>
+feat/add-user-auth -> <target-branch>
 ```
 
 ---
@@ -148,15 +149,15 @@ feat/add-user-auth → <target-branch>
 
 Squash merge (`feat/`, `fix/`, `refactor/`, `explore/` exception):
 ```bash
-gh pr merge --squash --delete-branch
+glab mr merge --squash --remove-source-branch
 ```
 
 Merge commit (`hotfix/`):
 ```bash
-gh pr merge --merge --delete-branch
+glab mr merge --remove-source-branch
 ```
 
-`--delete-branch` removes the remote branch after merge.
+`--remove-source-branch` removes the remote branch after merge.
 
 ---
 
@@ -194,7 +195,7 @@ After every successful merge, ask:
 ### Step 9: Show completion summary
 
 Display:
-- PR title and URL
+- MR title and URL
 - Merge type (squash / merge commit)
 - Target branch used
 - Remote branch deleted
@@ -209,11 +210,11 @@ Suggest next steps:
 ## Output On Success
 
 ```
-## PR Merged
+## MR Merged
 
 **Change:** <change-name>
-**PR:** <URL>
-**Branch:** feat/<name> → <target-branch> (deleted)
+**MR:** <URL>
+**Branch:** feat/<name> -> <target-branch> (deleted)
 **Strategy:** Squash merge
 
 ### Local cleanup
@@ -221,9 +222,9 @@ Suggest next steps:
 - [OK] Pulled latest
 - [OK] Deleted local branch feat/<name>
 
-Tag: v1.2.0 → pushed to origin  (or "No tag created")
+Tag: v1.2.0 -> pushed to origin  (or "No tag created")
 
-→ Run `/opsx-archive <change-name>` to archive this change.
+-> Run `/opsx-archive <change-name>` to archive this change.
 ```
 
 ## Output for Hotfix
@@ -232,13 +233,13 @@ Tag: v1.2.0 → pushed to origin  (or "No tag created")
 ## Hotfix Merged
 
 **Change:** <change-name>
-**PR:** <URL>
-**Branch:** hotfix/<name> → <target-branch> (deleted)
+**MR:** <URL>
+**Branch:** hotfix/<name> -> <target-branch> (deleted)
 **Strategy:** Merge commit (full context preserved)
 
-Tag: v1.2.1 → pushed to origin  (or "No tag created")
+Tag: v1.2.1 -> pushed to origin  (or "No tag created")
 
-→ Run `/opsx-archive <change-name>` to archive this change.
+-> Run `/opsx-archive <change-name>` to archive this change.
 ```
 
 ---
@@ -250,6 +251,8 @@ Tag: v1.2.1 → pushed to origin  (or "No tag created")
 - Never force-push or force-merge into main/master
 - `feat/fix/refactor` require at least 1 approved review
 - `hotfix/` allows merge with CI pass OR 1 approval; warn if neither
-- If `mergeable: CONFLICTING`, stop and show conflict files — do not proceed
+- If MR has conflicts, stop and show conflict files — do not proceed
 - Only use `git branch -D` (force delete) with explicit user confirmation
 - Always pull main after merge to sync local state
+- If `glab` not installed: `winget install Git.GitLabCLI` (Windows) / `brew install glab` (macOS)
+- If `glab` not authenticated: `glab auth login`
