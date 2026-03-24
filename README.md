@@ -55,28 +55,25 @@ git clone https://github.com/Martina-volley/openspec-gh-addon.git
 #### Claude Code（CLI）
 ```bash
 # 全域（任何專案都能用）
-cp -r openspec-gh-addon/.agent/skills/openspec-gh-* ~/.claude/skills/
+cp -r openspec-gh-addon/skills/openspec-gh-* ~/.claude/skills/
 
 # 或專案層級
-cp -r openspec-gh-addon/.agent/skills/openspec-gh-* your-project/.agent/skills/
+cp -r openspec-gh-addon/skills/openspec-gh-* your-project/.agent/skills/
 ```
 
 #### Antigravity IDE
 ```bash
 # 專案層級 skills
-cp -r openspec-gh-addon/.agent/skills/openspec-gh-* your-project/.agent/skills/
-
-# 或放到 workflows
-cp openspec-gh-addon/.agent/workflows/opsx-gh-*.md your-project/.agent/workflows/
+cp -r openspec-gh-addon/skills/openspec-gh-* your-project/.agent/skills/
 ```
 
 #### Cursor
 ```bash
 # 放到專案的 .cursor/skills/ 目錄
-cp -r openspec-gh-addon/.agent/skills/openspec-gh-* your-project/.cursor/skills/
+cp -r openspec-gh-addon/skills/openspec-gh-* your-project/.cursor/skills/
 
 # 或 .cursor/commands/
-cp -r openspec-gh-addon/.agent/skills/openspec-gh-* your-project/.cursor/commands/
+cp -r openspec-gh-addon/skills/openspec-gh-* your-project/.cursor/commands/
 ```
 
 #### 驗證安裝成功
@@ -174,8 +171,8 @@ What are my available skills?
 
 ## 完整說明文件
 
-- [操作指引（中文）](.agent/opsx-gh-guide.md) — 詳細說明、完整流程圖、常見問題
-- [流程圖](.agent/opsx-gh-flowchart.md) — Mermaid 圖表說明全流程
+- [操作指引（中文）](docs/opsx-gh-guide.md) — 詳細說明、完整流程圖、常見問題
+- [流程圖](docs/opsx-gh-flowchart.md) — Mermaid 圖表說明全流程
 
 ---
 
