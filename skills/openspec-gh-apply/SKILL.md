@@ -96,7 +96,7 @@ For each pending task:
 - Mark task complete: `- [ ]` → `- [x]`
 - **Auto-commit after each task:**
   ```bash
-  git add -A
+  git add <only the files created or modified for this task>
   git commit -m "<type>(<scope>): <short task description>
 
   Co-Authored-By: Name <email>"
